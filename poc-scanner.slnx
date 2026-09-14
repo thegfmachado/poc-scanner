@@ -1,0 +1,9 @@
+<Solution>
+  <Folder Name="/agent/" />
+  <Folder Name="/agent/src/">
+    <Project Path="agent/src/ScannerAgent/ScannerAgent.csproj" />
+  </Folder>
+  <Folder Name="/agent/tests/">
+    <Project Path="agent/tests/ScannerAgent.Tests/ScannerAgent.Tests.csproj" />
+  </Folder>
+</Solution>
