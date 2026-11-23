@@ -1,0 +1,60 @@
+POC DE SCANNER PARA WEB - PACOTE DE TESTE
+==========================================
+
+Este pacote testa se um scanner TWAIN/WIA pode ser usado por uma página web
+através de um agente local. Não é preciso instalar .NET nem Node.js.
+
+Antes de começar
+----------------
+- Windows 10 ou 11.
+- Scanner ligado, conectado e com o driver oficial do fabricante instalado.
+- Confirme que o scanner digitaliza pelo app "Scanner do Windows" ou pelo
+  software do fabricante. Se não funcionar lá, corrija a instalação primeiro.
+- Use apenas documentos de teste, sem dados pessoais ou clínicos.
+
+Como testar
+-----------
+1. Extraia o zip inteiro para uma pasta (por exemplo, C:\poc-scanner).
+   Não execute direto de dentro do zip.
+2. Abra ScannerAgent.exe.
+   - O Windows pode mostrar "O Windows protegeu o computador", porque o
+     executável não é assinado. Clique em "Mais informações" e em
+     "Executar assim mesmo".
+   - Se o firewall perguntar, pode negar: o agente só aceita conexões do
+     próprio computador.
+   - Se o antivírus bloquear o arquivo, peça a liberação à equipe de TI.
+3. Uma janela preta mostra o código de pareamento de 6 dígitos e o navegador
+   abre em http://127.0.0.1:17841. Mantenha a janela preta aberta durante
+   todo o teste. Se o navegador não abrir, acesse esse endereço manualmente.
+4. Na página, digite o código e clique em "Parear".
+5. Selecione TWAIN, escolha o scanner e clique em "Digitalizar" com a opção
+   "Interface do fabricante" habilitada.
+6. Confirme se a janela do fabricante abre, faça a captura e verifique se as
+   páginas aparecem no navegador. Baixe o PDF e o ZIP e abra os arquivos.
+   - Se a janela do fabricante não aparecer, procure atrás do navegador ou
+     na barra de tarefas, e anote isso no resultado.
+7. Repita com WIA e com os cenários do roteiro (modo silencioso, DPI, cores,
+   alimentador, duplex, cancelamento), conforme o equipamento permitir.
+   Marque N/A quando o equipamento não tiver o recurso.
+
+Sobre o cancelamento: fechar ou cancelar a janela do fabricante sem
+digitalizar aparece na página como falha ("O scanner nao retornou paginas").
+Isso é esperado nesta POC. O importante é que a captura seguinte funcione.
+
+Para testar em outro navegador (Chrome, Edge, Firefox), abra
+http://127.0.0.1:17841 nele e pareie de novo com o mesmo código.
+
+O que enviar de volta
+---------------------
+O roteiro completo e a matriz de resultados estão em:
+https://github.com/thegfmachado/poc-scanner#roteiro-de-validação-com-scanner-físico
+
+- Fabricante, modelo e versão do driver do scanner (32 ou 64 bits, se souber).
+- Versão do Windows e navegadores usados.
+- Para cada cenário: funcionou ou não, com prints ou vídeo.
+- Em caso de erro: a mensagem da página e o texto da janela preta
+  (selecione o texto com o mouse e copie; não use Ctrl+C sem seleção,
+  porque isso encerra o agente).
+
+Para encerrar, feche a janela preta. Ao abrir de novo, um novo código é
+gerado e é preciso parear outra vez.
