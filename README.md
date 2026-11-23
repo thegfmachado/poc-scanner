@@ -86,13 +86,42 @@ O agente:
 - mantém as páginas e exportações numa pasta temporária por sessão;
 - exporta cada página em PNG, o documento em PDF e as imagens em ZIP.
 
+## Pacote para teste com scanner físico
+
+Quem vai testar com o scanner não precisa clonar o repositório nem instalar .NET ou Node.js. O pacote `poc-scanner-win-x64.zip` traz o agente como executável autocontido e o frontend já compilado, servido pelo próprio agente em `http://127.0.0.1:17841`.
+
+Para quem recebe o pacote:
+
+1. Baixe `poc-scanner-win-x64.zip` da [página de releases](https://github.com/thegfmachado/poc-scanner/releases) ou receba o arquivo de quem gerou o pacote.
+2. Extraia o zip inteiro para uma pasta e abra `ScannerAgent.exe`.
+3. Siga o `LEIA-ME.txt` que acompanha o pacote e registre os resultados na [matriz deste README](#registro-dos-resultados).
+
+O navegador abre sozinho, e o código de pareamento aparece na janela do agente. Como o executável não é assinado, o Windows SmartScreen pode pedir confirmação na primeira execução, e alguns antivírus corporativos podem bloqueá-lo; nesse caso, peça a liberação do arquivo à equipe de TI.
+
+Para gerar o pacote (requer .NET SDK 10 e Node.js):
+
+```powershell
+powershell -ExecutionPolicy Bypass -File scripts/package.ps1
+```
+
+O resultado fica em `artifacts/poc-scanner-win-x64.zip`. O script reinstala as dependências do frontend, então pare o `npm run dev` antes de executá-lo. Para distribuir, anexe o zip a uma release do GitHub.
+
+### Testar sem scanner físico
+
+O TWAIN Working Group publica um scanner virtual, que aparece como dispositivo TWAIN, abre uma janela própria no lugar da interface do fabricante e devolve uma imagem de exemplo. Ele serve para validar a POC e o pacote antes de enviá-los, mas não substitui o teste com os equipamentos dos clientes. A instalação exige administrador.
+
+1. Baixe `Twain_sample01_02050000.zip` da [release v2.5.0 de twain-samples](https://github.com/twain/twain-samples/releases/tag/v2.5.0) e instale `twainds.win32.installer.msi` e `twainds.win64.installer.msi`. Os arquivos `.ds` ficam em `C:\Windows\twain_32\sample2` e `C:\Windows\twain_64\sample2`.
+2. Confirme que existem `C:\Windows\SysWOW64\TWAINDSM.dll` e `C:\Windows\System32\TWAINDSM.dll`. Se faltarem, copie os arquivos de `windows\32` e `windows\64` do `dsm_020501.zip` da [release v2.5.1 de twain-dsm](https://github.com/twain/twain-dsm/releases/tag/v2.5.1) para essas pastas, como administrador.
+3. Inicie o agente, pareie e selecione `TWAIN`. O dispositivo aparece como **TWAIN2 Software Scanner**.
+
+Para remover, desinstale os dois programas em **Adicionar ou remover programas**.
+
 ## Pré-requisitos para o teste físico
 
 - Windows 10 ou 11.
 - Scanner conectado, ligado e reconhecido pelo Windows.
 - Driver oficial do fabricante instalado, incluindo TWAIN e/ou WIA.
-- .NET SDK 10.
-- Node.js com npm.
+- .NET SDK 10 e Node.js com npm, apenas para executar a partir do código-fonte; o pacote acima não precisa deles.
 - Chrome, Edge e Firefox para a matriz completa.
 
 Antes de testar a POC, confirme que o equipamento digitaliza pelo aplicativo **Scanner do Windows** ou pelo software oficial do fabricante. Se não funcionar fora da POC, corrija a instalação do equipamento primeiro.
@@ -279,6 +308,10 @@ Isso significa que a enumeração retornou zero dispositivos:
 - Registre modelo, versão do driver e se está usando TWAIN ou WIA.
 - Verifique se a janela abre no software oficial do fabricante.
 
+### Cancelar na janela do fabricante mostra falha
+
+Quando a janela do fabricante é fechada ou cancelada sem digitalizar, a sessão termina como falha com a mensagem `O scanner nao retornou paginas.`, e não como cancelada. É uma limitação conhecida da POC: o agente continua utilizável e uma nova captura deve funcionar normalmente. Registre o cenário como aprovado se a nova captura funcionar.
+
 ### O scanner aparece, mas a captura falha
 
 - Teste inicialmente mesa, 300 DPI e colorido.
@@ -298,6 +331,14 @@ Sem scanner físico, foram validados:
 - ciclo de sessão com backend falso;
 - publicação de página e cancelamento em testes automatizados;
 - estrutura de preview, PDF e ZIP no fluxo da aplicação.
+
+Com o pacote `poc-scanner-win-x64.zip`, numa máquina sem .NET nem Node.js no `PATH`, e com o [scanner virtual TWAIN](#testar-sem-scanner-físico):
+
+- página servida pelo agente e pareamento pela interface no Edge e no Chrome;
+- descoberta do dispositivo por TWAIN;
+- captura em modo silencioso, com preview, PDF e ZIP;
+- captura com a interface nativa do driver virtual;
+- cancelamento na janela do driver seguido de nova captura, sem travar o agente.
 
 Comandos de verificação:
 

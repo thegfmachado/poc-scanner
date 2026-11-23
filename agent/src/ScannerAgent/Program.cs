@@ -1,11 +1,19 @@
+using System.Diagnostics;
 using System.Security.Cryptography;
 
-var builder = WebApplication.CreateBuilder(args);
-builder.WebHost.UseUrls("http://127.0.0.1:17841");
+const string AgentUrl = "http://127.0.0.1:17841";
+
+// The package runs from any folder (double click, shortcut), so files are resolved next to the executable.
+var builder = WebApplication.CreateBuilder(new WebApplicationOptions
+{
+	Args = args,
+	ContentRootPath = AppContext.BaseDirectory,
+});
+builder.WebHost.UseUrls(AgentUrl);
 
 var allowedOrigins = builder.Configuration
 	.GetSection("AllowedOrigins")
-	.Get<string[]>() ?? ["http://localhost:5173", "http://127.0.0.1:5173"];
+	.Get<string[]>() ?? ["http://localhost:5173", "http://127.0.0.1:5173", "http://localhost:17841"];
 
 builder.Services.AddCors(options => options.AddDefaultPolicy(policy => policy
 	.WithOrigins(allowedOrigins)
@@ -17,6 +25,14 @@ builder.Services.AddSingleton<ScanSessionService>();
 
 var app = builder.Build();
 app.UseCors();
+
+// The package ships the web build in wwwroot; in development the page comes from Vite instead.
+var servesWebApp = File.Exists(Path.Combine(AppContext.BaseDirectory, "wwwroot", "index.html"));
+if (servesWebApp)
+{
+	app.UseDefaultFiles();
+	app.UseStaticFiles();
+}
 
 app.Use(async (context, next) =>
 {
@@ -101,6 +117,23 @@ app.MapGet("/api/scans/{id}/export", async (
 });
 
 _ = app.Services.GetRequiredService<PairingService>();
+
+if (servesWebApp && !args.Contains("--no-browser"))
+{
+	app.Lifetime.ApplicationStarted.Register(() =>
+	{
+		Console.WriteLine($"Abrindo {AgentUrl} no navegador. Mantenha esta janela aberta durante o teste.");
+		try
+		{
+			Process.Start(new ProcessStartInfo(AgentUrl) { UseShellExecute = true });
+		}
+		catch (Exception exception)
+		{
+			Console.WriteLine($"Nao foi possivel abrir o navegador ({exception.Message}). Abra {AgentUrl} manualmente.");
+		}
+	});
+}
+
 app.Run();
 
 public partial class Program;

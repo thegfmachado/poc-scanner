@@ -36,3 +36,6 @@ coverage/
 .idea/
 .DS_Store
 Thumbs.db
+
+# Packages
+artifacts/
